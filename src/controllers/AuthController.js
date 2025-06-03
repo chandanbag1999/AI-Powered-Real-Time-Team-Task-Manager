@@ -253,3 +253,46 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
+
+exports.logout = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.refreshToken = null;
+    await user.save();
+
+    res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Logout failed", error: error.message });
+  }
+};
+
+
+exports.updateProfile = async (req, res) => {
+  const { name, email, password } = req.body;
+
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (password) {
+      user.password = password;
+      user.passwordVersion = (user.passwordVersion || 0) + 1;
+    }
+
+    await user.save();
+
+    res.status(200).json({ message: "Profile updated successfully ✅" });
+  } catch (error) {
+    res.status(500).json({ message: "Profile update failed", error: error.message });
+  }
+};
