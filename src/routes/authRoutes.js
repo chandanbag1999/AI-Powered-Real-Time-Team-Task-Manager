@@ -14,6 +14,8 @@ router.post("/login", AuthController.login);
 router.post("/refresh", AuthController.refreshAccessToken );
 router.post("/forgot-password", forgotPasswordLimiter, AuthController.forgotPassword);
 router.post("/reset-password/:token", resetPasswordLimiter, AuthController.resetPassword);
+router.put("/update-profile", protect, AuthController.updateProfile);
+router.post("/logout", protect, AuthController.logout);
 
 
 router.get('/me', protect, adminOnly, (req, res) => {
