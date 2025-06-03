@@ -5,6 +5,7 @@ const connectDB = require("./config/db");
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
+const projectRoutes = require("./routes/projectRoutes");
 
 dotenv.config();
 
@@ -19,8 +20,7 @@ app.get("/", (req, res) => {
   res.send("API is Running....");
 });
 app.use("/api/auth", authRoutes);
-
-
+app.use("/api/projects", projectRoutes);
 
 // listen server
 const PORT = process.env.PORT || 5000;
