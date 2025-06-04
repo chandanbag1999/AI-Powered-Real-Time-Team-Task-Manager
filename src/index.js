@@ -6,6 +6,7 @@ const connectDB = require("./config/db");
 // Routes
 const authRoutes = require("./routes/authRoutes");
 const projectRoutes = require("./routes/projectRoutes");
+const taskRoutes = require("./routes/taskRoutes");
 
 dotenv.config();
 
@@ -13,6 +14,7 @@ const app = express();
 connectDB();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 // Routes
@@ -21,6 +23,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/tasks", taskRoutes);
 
 // listen server
 const PORT = process.env.PORT || 5000;
