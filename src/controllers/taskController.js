@@ -27,27 +27,62 @@ exports.createTask = async (req, res) => {
 };
 
 // GET ALL (Tasks from one project)
-exports.getAllTasks = async (req, res) => {
-
-  const projectId = req.params.projectId;
-  const userId  = req.user._id;
-  
+exports.getTasks = async (req, res) => {
   try {
-    const task = await Task.find({
-      project: projectId,
-      createdBy: userId,
-    }).sort({ createdAt: -1})  
-    
-    
+    const projectId = req.params.projectId;
+    const { status, priority, dueDate, sort = '-createdAt', page = 1, limit = 10 } = req.query;
 
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+    // Filters
+    const filter = {
+      project: projectId,
+      createdBy: req.user._id
+    };
+
+    if (status) filter.status = status;
+    if (priority) filter.priority = priority;
+    if (dueDate) filter.dueDate = dueDate;
+
+    // Pagination
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Handle sorting
+    let sortOption = {};
+    if (sort.startsWith('-')) {
+      sortOption[sort.substring(1)] = -1; // descending order
+    } else {
+      sortOption[sort] = 1; // ascending order
     }
 
-    res.status(200).json(task);
+    const tasks = await Task.find(filter)
+      .sort(sortOption)
+      .skip(skip)
+      .limit(limitNum);
+
+    const total = await Task.countDocuments(filter);
+    const pages = Math.ceil(total / limitNum);
+
+    if (!tasks || tasks.length === 0) {
+      return res.status(200).json({
+        total: 0,
+        page: pageNum,
+        pages: 0,
+        limit: limitNum,
+        tasks: []
+      });
+    }
+
+    res.status(200).json({
+      total,
+      page: pageNum,
+      pages,
+      limit: limitNum,
+      tasks
+    });
 
   } catch (error) {
-    res.status(500).json({ message: 'Failed to get tasks', error: error.message });
+    res.status(500).json({ message: 'Task fetch failed', error: error.message });
   }
 };
 

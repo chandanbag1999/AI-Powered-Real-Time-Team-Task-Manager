@@ -5,7 +5,7 @@ const TaskController = require("../controllers/taskController");
 const router = express.Router();
 
 router.post("/", protect, TaskController.createTask)
-router.get("/:projectId", protect, TaskController.getAllTasks)
+router.get("/:projectId", protect, TaskController.getTasks)
 router.route("/task/:taskId")
   .get(protect, TaskController.getTaskById)
   .put(protect, TaskController.updateTask)
