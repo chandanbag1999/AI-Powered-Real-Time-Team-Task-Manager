@@ -18,6 +18,9 @@ exports.createTask = async (req, res) => {
       createdBy: req.user._id,
     })
 
+    const io = req.app.get('io');             // access soket.io
+    io.to(project).emit('new-task', task);   // Emit real-time update to project room
+
     res.status(201).json(task);
 
   } catch (error) {
@@ -119,6 +122,9 @@ exports.updateTask = async (req, res) => {
 
     if(!task) return res.status(404).json({ message: 'Task not found' });
 
+    const io = req.app.get('io');
+    io.to(task.project.toString()).emit('task-update', task);   // Emit real-time update
+
     res.status(200).json(task);
 
   } catch (error) {
@@ -140,6 +146,9 @@ exports.deleteTask = async (req, res) => {
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
     }
+
+    const io = req.app.get('io');
+    io.to(task.project.toString()).emit('task-deleted', task._id);   // Send only ID
 
     res.status(200).json({ message: 'Task delete Successfully ✅'});
   } catch (error) {
