@@ -1,4 +1,5 @@
 const Task = require("../models/TaskModel");
+const cloudinary = require("../config/cloudinary");
 
 exports.createTask = async (req, res) => {
   const { title, description, status, priority, dueDate, project } = req.body;
@@ -8,6 +9,14 @@ exports.createTask = async (req, res) => {
   }
 
   try {
+    let fileUrl = null;
+    let publicId = null;
+
+    if (req.file) {
+      fileUrl = req.file.path;
+      publicId = req.file.filename;
+    }
+
     const task = await Task.create({
       title,
       description,
@@ -15,6 +24,8 @@ exports.createTask = async (req, res) => {
       priority,
       dueDate,
       project,
+      fileUrl,
+      filePublicId: publicId,
       createdBy: req.user._id,
     })
 
@@ -114,14 +125,40 @@ exports.updateTask = async (req, res) => {
   const taskId = req.params.taskId;
   
   try {
-    const task = await Task.findOneAndUpdate(
-      { _id: taskId, createdBy: req.user._id },
-      req.body,
-      { new: true }
-    );
+    const task = await Task.findOne({
+      _id: taskId, 
+      createdBy: req.user._id,
+    });
 
     if(!task) return res.status(404).json({ message: 'Task not found' });
 
+    // Handle file replacement
+    if (req.file) {
+
+      // Delete old file from Cloudinary if exists
+      if (task.filePublicId) {
+        await cloudinary.uploader.destroy(task.filePublicId, {
+          resource_type: 'raw'
+        });
+      };
+
+      // set new file values
+      task.fileUrl = req.file.path;
+      task.filePublicId = req.file.filename;
+    };
+
+
+    //  Update only provided fields (dynamic)
+    const updatableFields = ['title', 'description', 'status', 'priority', 'dueDate'];
+    updatableFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        task[field] = req.body[field];
+      }
+    });
+
+    await task.save();
+
+    // real time emit
     const io = req.app.get('io');
     io.to(task.project.toString()).emit('task-update', task);   // Emit real-time update
 
@@ -138,14 +175,24 @@ exports.deleteTask = async (req, res) => {
   const userId = req.user._id;
   
   try {
-    const task = await Task.findOneAndDelete({
+    const task = await Task.findOne({
       _id: taskId,
       createdBy: userId
-    }) 
+    });
 
     if (!task) {
       return res.status(404).json({ message: 'Task not found' });
     }
+
+    // Delete the file from Cloudinary if it exists
+    if (task.filePublicId) {
+      await cloudinary.uploader.destroy(task.filePublicId, {
+        resource_type: 'raw'
+      });
+    }
+
+    // Delete the task
+    await task.deleteOne();
 
     const io = req.app.get('io');
     io.to(task.project.toString()).emit('task-deleted', task._id);   // Send only ID
@@ -156,3 +203,42 @@ exports.deleteTask = async (req, res) => {
   }
 
 };
+
+exports.deleteTaskFile = async (req, res) => {
+  try {
+    const taskId = req.params.taskId;
+
+    const task = await Task.findOne({
+      _id: taskId,
+      createdBy: req.user._id,
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    if (!task.filePublicId) {
+      return res.status(400).json({ message: 'No attachment found on this task' });
+    }
+
+    // Delete file from Cloudinary
+    await cloudinary.uploader.destroy(task.filePublicId, {
+      resource_type: 'raw'
+    });
+
+    // Remove from task document
+    task.fileUrl = null;
+    task.filePublicId = null;
+    await task.save()
+
+
+    // Emit real-time update (optional)
+    const io = req.app.get('io');
+    io.to(task.project.toString()).emit('task-updated', task);
+
+    res.status(200).json({ message: 'Attachment removed successfully ✅', task });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete attachment', error: err.message });
+  }
+}

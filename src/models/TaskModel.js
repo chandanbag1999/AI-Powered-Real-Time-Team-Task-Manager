@@ -31,7 +31,15 @@ const taskSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-  }
+  },
+  fileUrl: {
+    type: String,
+    default: null
+  },
+  filePublicId: {
+    type: String,
+    default: null
+  },
 }, { timestamps: true });
 
 const Task = mongoose.model("Task", taskSchema);
