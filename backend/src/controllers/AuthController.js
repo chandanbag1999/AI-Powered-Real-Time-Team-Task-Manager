@@ -128,7 +128,7 @@ exports.forgotPassword = async (req, res) => {
         version: user.passwordVersion || 0, // Track password version
         type: 'password-reset'
       },
-      process.env.process.env.JWT_SECRET, 
+      process.env.JWT_SECRET, 
       { expiresIn: '10m' }
     );
     
@@ -174,7 +174,7 @@ exports.resetPassword = async (req, res) => {
     // Verify the JWT token
     const decoded = jwt.verify(
       token, 
-      process.env.process.env.JWT_SECRET 
+      process.env.JWT_SECRET 
     );
     
     // Check token type
@@ -256,14 +256,12 @@ exports.resetPassword = async (req, res) => {
 
 exports.logout = async (req, res) => {
   try {
+    // Clear refresh token in database
     const user = await User.findById(req.user._id);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    if (user) {
+      user.refreshToken = null;
+      await user.save();
     }
-
-    user.refreshToken = null;
-    await user.save();
 
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
@@ -271,6 +269,31 @@ exports.logout = async (req, res) => {
   }
 };
 
+exports.getCurrentUser = async (req, res) => {
+  try {
+    // User is already available from the auth middleware
+    const user = req.user;
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Return user data without sensitive information
+    res.status(200).json({
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Failed to retrieve user data", 
+      error: error.message 
+    });
+  }
+};
 
 exports.updateProfile = async (req, res) => {
   const { name, email, password } = req.body;

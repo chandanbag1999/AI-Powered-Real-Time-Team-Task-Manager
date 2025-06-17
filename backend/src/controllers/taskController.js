@@ -160,7 +160,7 @@ exports.updateTask = async (req, res) => {
 
     // real time emit
     const io = req.app.get('io');
-    io.to(task.project.toString()).emit('task-update', task);   // Emit real-time update
+    io.to(task.project.toString()).emit('task-updated', task);   // Emit real-time update
 
     res.status(200).json(task);
 

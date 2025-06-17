@@ -11,10 +11,15 @@ connectDB();
 
 const app = express();
 const server = http.createServer(app);
+
+// Configure Socket.IO with proper CORS settings
 const io = new Server(server, {
   cors: {
-    origin: '*', // Allow frontend (in production: restrict this)
+    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'], // Allow multiple origins including 127.0.0.1
+    methods: ["GET", "POST"],
+    credentials: true, // Allow credentials
   },
+  path: '/socket.io', // Explicitly set the Socket.IO path
 });
 
 // Store io in app to access inside controller
@@ -23,7 +28,10 @@ app.set('io', io);
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'], // Match Socket.IO CORS settings
+  credentials: true, // Allow credentials
+}));
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
@@ -50,12 +58,15 @@ io.on("connection", (socket) => {
   socket.on('join-project', (projectId) => {
     socket.join(projectId);
     console.log(`User ${socket.id} joined room: ${projectId}`);
+  });
 
+  socket.on('leave-project', (projectId) => {
+    socket.leave(projectId);
+    console.log(`User ${socket.id} left room: ${projectId}`);
   });
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
-    
   });  
 });
 

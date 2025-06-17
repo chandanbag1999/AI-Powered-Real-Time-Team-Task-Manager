@@ -18,9 +18,21 @@ router.put("/update-profile", protect, AuthController.updateProfile);
 router.post("/logout", protect, AuthController.logout);
 
 
-router.get('/me', protect, adminOnly, (req, res) => {
+// test purpose
+// router.get('/me', protect, adminOnly, (req, res) => {
+//   res.json({
+//     message: 'Welcome to your dashboard',
+//     user: req.user
+//   });
+// });
+
+// Get current user data
+router.get('/me', protect, AuthController.getCurrentUser);
+
+// Admin route for testing
+router.get('/admin-dashboard', protect, adminOnly, (req, res) => {
   res.json({
-    message: 'Welcome to your dashboard',
+    message: 'Welcome to your admin dashboard',
     user: req.user
   });
 });

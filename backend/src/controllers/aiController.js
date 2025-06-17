@@ -142,27 +142,78 @@ exports.autoPrioritizeTask = async (req, res) => {
     return res.status(400).json({ message: "Task ID is required" });
   }
 
-
   try {
+    // Check if the GEMINI_API_KEY is set
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ 
+        message: "GEMINI_API_KEY is not configured on the server" 
+      });
+    }
 
-    const task = await Task.findById(taskId);
+    // Find the task
+    let task;
+    try {
+      task = await Task.findById(taskId);
+    } catch (dbError) {
+      console.error("Database error finding task:", dbError);
+      return res.status(500).json({ 
+        message: "Database error finding task", 
+        error: dbError.message 
+      });
+    }
 
     if (!task) {
       return res.status(404).json({ message: 'Task not found in database' });
     }
 
-    const prompt = `Based on this task title and due date, return priority as one of: low, medium, high.
-Respond with only one word.
+    // Format the due date if it exists, otherwise use "No due date"
+    let dueDateString = "No due date";
+    try {
+      if (task.dueDate) {
+        dueDateString = task.dueDate.toISOString().split('T')[0];
+      }
+    } catch (dateError) {
+      console.error("Error formatting due date:", dateError);
+      // Continue with the default "No due date"
+    }
 
-Title: "${task.title}"
-Due Date: "${task.dueDate.toISOString().split('T')[0]}"`;
+    // Make sure we have a title
+    const taskTitle = task.title || "Untitled task";
 
+    // Create a description for the AI to use
+    const taskDescription = task.description || "No description";
 
-    const aiResponse = await geminiPrompt(prompt);
+    const prompt = `Based on this task information, determine the priority as one of: low, medium, high.
+Respond with only one word - either "low", "medium", or "high".
+
+Title: "${taskTitle}"
+Description: "${taskDescription}"
+Due Date: "${dueDateString}"`;
+
+    console.log("Sending prompt to Gemini for task prioritization");
+
+    // Call the AI service
+    let aiResponse;
+    try {
+      aiResponse = await geminiPrompt(prompt);
+    } catch (aiError) {
+      console.error("Gemini API error:", aiError);
+      return res.status(500).json({ 
+        message: "AI service error", 
+        error: aiError.message 
+      });
+    }
+
+    if (!aiResponse) {
+      return res.status(500).json({ message: "Empty response from AI service" });
+    }
+
+    console.log("Received response from Gemini:", aiResponse);
 
     const clean = aiResponse.trim().toLowerCase();
 
     if (!["low", "medium", "high"].includes(clean)) {
+      console.error("Invalid priority response:", clean);
       return res.status(422).json({
         message: "AI response not a valid priority",
         rawResponse: aiResponse,
@@ -174,6 +225,10 @@ Due Date: "${task.dueDate.toISOString().split('T')[0]}"`;
     console.error("Priority AI error:", err);
     res
       .status(500)
-      .json({ message: "Failed to auto-prioritize", error: err.message });
+      .json({ 
+        message: "Failed to auto-prioritize", 
+        error: err.message,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      });
   }
 };
