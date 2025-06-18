@@ -6,8 +6,17 @@ import ResetPassword from "../pages/auth/ResetPassword";
 import Dashboard from "../pages/Dashboard";
 import TaskBoard from "../pages/TaskBoard";
 import AuthLayout from "../layouts/AuthLayout";
+import AdminLayout from "../layouts/AdminLayout";
 import Landing from "../pages/Landing";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRoute from "@/components/AdminRoute";
+
+// Admin pages
+import AdminDashboard from "@/pages/admin/Dashboard";
+import UsersPage from "@/pages/admin/Users";
+import ProjectsPage from "@/pages/admin/Projects";
+import SystemPage from "@/pages/admin/System";
+import SettingsPage from "@/pages/admin/Settings";
 
 export default function AppRouter() {
   return (
@@ -25,6 +34,17 @@ export default function AppRouter() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/project/:projectId" element={<TaskBoard />} />
+          
+          {/* Admin Routes */}
+          <Route element={<AdminRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/users" element={<UsersPage />} />
+              <Route path="/admin/projects" element={<ProjectsPage />} />
+              <Route path="/admin/system" element={<SystemPage />} />
+              <Route path="/admin/settings" element={<SettingsPage />} />
+            </Route>
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

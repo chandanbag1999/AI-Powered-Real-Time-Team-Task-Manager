@@ -32,6 +32,14 @@ const userSchema = new Schema({
     type: Number,
     default: 0,
   },
+  isInvited: {
+    type: Boolean,
+    default: false,
+  },
+  passwordResetRequired: {
+    type: Boolean,
+    default: false,
+  },
   
 }, {timestamps: true});
 

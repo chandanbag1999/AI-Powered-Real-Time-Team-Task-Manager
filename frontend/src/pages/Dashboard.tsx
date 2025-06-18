@@ -7,6 +7,7 @@ import ProjectCard from "@/components/ProjectCard";
 import CreateProjectForm from "@/components/CreateProjectForm";
 import NotesToTasksConverter from "@/components/NotesToTasksConverter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
@@ -50,6 +51,11 @@ const Dashboard = () => {
             <span className="text-sm text-slate-600 hidden md:inline">
               Welcome, {user?.name || "User"}
             </span>
+            {user?.role === "admin" && (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/admin">Admin Dashboard</Link>
+              </Button>
+            )}
             <LogoutButton />
           </div>
         </div>

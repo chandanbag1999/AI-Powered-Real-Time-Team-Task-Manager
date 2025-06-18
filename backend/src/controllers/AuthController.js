@@ -5,7 +5,7 @@ const {
   generateRefreshToken
 } = require("../utils/generateToken");
 const crypto = require("crypto");
-const sendEmail = require("../utils/sendEmail");
+const { sendEmail } = require("../utils/sendEmail");
 const { logSecurityEvent } = require("../utils/securityLogger");
 
 exports.register = async (req, res) => {
@@ -112,14 +112,18 @@ exports.refreshAccessToken = async (req, res) => {
 
 exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
-
+  
   try {
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    
     const user = await User.findOne({ email });
-
+    
+    // For security reasons, don't reveal if the email exists or not
     if (!user) {
-      // Log failed attempt
-      logSecurityEvent('PASSWORD_RESET_REQUEST_FAILED', { email }, req);
-      return res.status(404).json({ message: "User not found" });
+      logSecurityEvent('PASSWORD_RESET_EMAIL_NOT_FOUND', { email }, req);
+      return res.status(200).json({ message: 'Reset link sent to email ✅' });
     }
 
     const resetToken = jwt.sign(
@@ -137,7 +141,24 @@ exports.forgotPassword = async (req, res) => {
     const message = `You requested a password reset.\n\nClick the link to reset your password:\n\n${resetURL}\n\nThis link will expire in 15 minutes.`;
 
     try {
-      await sendEmail(user.email, "Password Reset", message);
+      await sendEmail({
+        to: user.email,
+        subject: "Password Reset",
+        text: message,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+            <h2 style="color: #333;">Password Reset Request</h2>
+            <p>You requested a password reset for your AI Task Manager account.</p>
+            <p>Click the button below to reset your password:</p>
+            <div style="text-align: center; margin: 25px 0;">
+              <a href="${resetURL}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
+            </div>
+            <p>This link will expire in 15 minutes.</p>
+            <p>If you didn't request a password reset, you can safely ignore this email.</p>
+            <p>Best regards,<br>AI Task Manager Team</p>
+          </div>
+        `
+      });
       
       // Log successful request
       logSecurityEvent('PASSWORD_RESET_REQUEST_SUCCESS', { 
@@ -220,11 +241,19 @@ exports.resetPassword = async (req, res) => {
     
     // Send confirmation email
     try {
-      await sendEmail(
-        user.email,
-        "Password Changed Successfully",
-        `Your password has been changed successfully. If you did not request this change, please contact support immediately.`
-      );
+      await sendEmail({
+        to: user.email,
+        subject: "Password Changed Successfully",
+        text: `Your password has been changed successfully. If you did not request this change, please contact support immediately.`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+            <h2 style="color: #333;">Password Changed Successfully</h2>
+            <p>Your password for AI Task Manager has been changed successfully.</p>
+            <p style="color: #d32f2f; font-weight: bold;">If you did not request this change, please contact support immediately.</p>
+            <p>Best regards,<br>AI Task Manager Team</p>
+          </div>
+        `
+      });
     } catch (emailError) {
       // Just log the error but don't fail the request
       console.error("Failed to send password change confirmation:", emailError);
