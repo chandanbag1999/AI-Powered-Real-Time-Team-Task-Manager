@@ -93,15 +93,15 @@ export function DialogContent({
       {/* Dialog */}
       <div
         className={`fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-slate-200 bg-white p-6 shadow-lg sm:rounded-lg ${className}`}
-        {...props}
-      >
-        {children}
+      {...props}
+    >
+      {children}
         <button
           className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100"
           onClick={() => context.setOpen(false)}
         >
-          <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
+        <X className="h-4 w-4" />
+        <span className="sr-only">Close</span>
         </button>
       </div>
     </>,
@@ -115,10 +115,10 @@ export function DialogHeader({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
+  <div
       className={`flex flex-col space-y-1.5 text-center sm:text-left ${className}`}
-      {...props}
-    />
+    {...props}
+  />
   );
 }
 
@@ -127,10 +127,10 @@ export function DialogFooter({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
+  <div
       className={`flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 ${className}`}
-      {...props}
-    />
+    {...props}
+  />
   );
 }
 
@@ -141,8 +141,8 @@ export function DialogTitle({
   return (
     <h3
       className={`text-lg font-semibold leading-none tracking-tight ${className}`}
-      {...props}
-    />
+    {...props}
+  />
   );
 }
 

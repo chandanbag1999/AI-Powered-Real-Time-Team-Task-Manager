@@ -112,14 +112,14 @@ exports.refreshAccessToken = async (req, res) => {
 
 exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
-  
+
   try {
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
     
     const user = await User.findOne({ email });
-    
+
     // For security reasons, don't reveal if the email exists or not
     if (!user) {
       logSecurityEvent('PASSWORD_RESET_EMAIL_NOT_FOUND', { email }, req);
@@ -288,8 +288,8 @@ exports.logout = async (req, res) => {
     // Clear refresh token in database
     const user = await User.findById(req.user._id);
     if (user) {
-      user.refreshToken = null;
-      await user.save();
+    user.refreshToken = null;
+    await user.save();
     }
 
     res.status(200).json({ message: "Logged out successfully" });

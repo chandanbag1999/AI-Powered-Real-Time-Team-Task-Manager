@@ -85,36 +85,35 @@ const SystemPage = () => {
     setLogsLoading(true);
     
     try {
-      // This endpoint doesn't exist yet, but we're preparing for it
-      const response = await apiClient.get('/admin/logs');
+      const response = await apiClient.get('/admin/logs', {
+        params: {
+          page: 1,
+          limit: 50
+        }
+      });
+      
       setLogs(response.data.logs);
+      
+      // Check if we need to seed logs
+      if (response.data.logs.length === 0) {
+        try {
+          await apiClient.post('/admin/logs/seed');
+          // Fetch logs again after seeding
+          const seedResponse = await apiClient.get('/admin/logs', {
+            params: {
+              page: 1,
+              limit: 50
+            }
+          });
+          setLogs(seedResponse.data.logs);
+        } catch (seedError) {
+          console.error('Failed to seed logs:', seedError);
+        }
+      }
     } catch (err) {
       console.error('Failed to fetch system logs:', err);
-      
-      // Mock data for demonstration
-      setLogs([
-        {
-          timestamp: new Date().toISOString(),
-          level: 'info',
-          message: 'Server started successfully'
-        },
-        {
-          timestamp: new Date(Date.now() - 60000).toISOString(),
-          level: 'info',
-          message: 'Database connected'
-        },
-        {
-          timestamp: new Date(Date.now() - 120000).toISOString(),
-          level: 'warn',
-          message: 'High memory usage detected'
-        },
-        {
-          timestamp: new Date(Date.now() - 180000).toISOString(),
-          level: 'error',
-          message: 'Failed to process task #123',
-          meta: { taskId: '123', reason: 'Timeout' }
-        }
-      ]);
+      // Set empty logs array on error
+      setLogs([]);
     } finally {
       setLogsLoading(false);
     }

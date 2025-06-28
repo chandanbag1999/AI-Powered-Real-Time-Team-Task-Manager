@@ -21,9 +21,11 @@ router.post("/users/:userId/resend-invitation", adminController.resendInvitation
 // Project management
 router.get("/projects", adminController.getAllProjects);
 
-// System health and settings
+// System health, logs and settings
 router.get("/system-health", adminController.getSystemHealth);
 router.get("/email-status", adminController.checkEmailStatus);
+router.get("/logs", adminController.getSystemLogs);
+router.post("/logs/seed", adminController.seedSystemLogs);
 router.get("/settings", adminController.getSystemSettings);
 router.put("/settings", adminController.updateSystemSettings);
 router.post("/settings/reset", adminController.resetSystemSettings);

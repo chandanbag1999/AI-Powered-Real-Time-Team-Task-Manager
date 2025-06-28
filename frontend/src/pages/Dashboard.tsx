@@ -8,6 +8,8 @@ import CreateProjectForm from "@/components/CreateProjectForm";
 import NotesToTasksConverter from "@/components/NotesToTasksConverter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
+import MaintenanceModeBanner from "@/components/MaintenanceModeBanner";
+import apiClient from "@/utils/apiClient";
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
@@ -15,6 +17,7 @@ const Dashboard = () => {
   const { projects, loading, error, deletingIds } = useAppSelector((state) => state.projects);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [activeTab, setActiveTab] = useState("projects");
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
 
   const loadProjects = useCallback(async () => {
     try {
@@ -27,6 +30,22 @@ const Dashboard = () => {
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
+
+  // Fetch maintenance mode status
+  useEffect(() => {
+    const fetchMaintenanceStatus = async () => {
+      try {
+        const response = await apiClient.get('/system/maintenance');
+        if (response.data) {
+          setMaintenanceMode(response.data.maintenanceMode || false);
+        }
+      } catch (error) {
+        console.error('Failed to fetch maintenance mode status:', error);
+      }
+    };
+
+    fetchMaintenanceStatus();
+  }, []);
 
   const handleDeleteProject = async (id: string) => {
     try {
@@ -43,6 +62,9 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Maintenance Mode Banner */}
+      {maintenanceMode && <MaintenanceModeBanner isAdmin={false} />}
+      
       {/* Header */}
       <header className="bg-white border-b border-slate-200">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">

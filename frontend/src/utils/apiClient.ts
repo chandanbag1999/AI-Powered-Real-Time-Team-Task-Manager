@@ -76,11 +76,27 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for handling token refresh
+// Response interceptor for handling token refresh and maintenance mode
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Handle maintenance mode (503 Service Unavailable)
+    if (error.response?.status === 503 && error.response?.data?.maintenanceMode) {
+      // Show maintenance mode message
+      toast.error("System is currently in maintenance mode. Please try again later.", {
+        duration: 10000, // longer duration for this important message
+        id: "maintenance-mode", // prevent duplicate toasts
+      });
+      
+      // Redirect to maintenance page or login page
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+      
+      return Promise.reject(error);
+    }
 
     // If error is not 401 or request has already been retried, reject
     if (error.response?.status !== 401 || originalRequest._retry) {

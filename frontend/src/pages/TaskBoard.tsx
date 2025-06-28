@@ -37,6 +37,7 @@ import CreateTaskDialog from "@/components/CreateTaskDialog";
 import DroppableColumn from "@/components/DroppableColumn";
 import EditProjectDialog from "@/components/EditProjectDialog";
 import SocketStatus from "@/components/SocketStatus";
+import MaintenanceModeBanner from "@/components/MaintenanceModeBanner";
 import type { Project, Task } from "../types";
 import aiService from "@/utils/aiService";
 
@@ -70,6 +71,23 @@ const TaskBoard = () => {
   const [aiSearchLoading, setAiSearchLoading] = useState(false);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [socketConnected, setSocketConnected] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+
+  // Fetch maintenance mode status
+  useEffect(() => {
+    const fetchMaintenanceStatus = async () => {
+      try {
+        const response = await apiClient.get('/system/maintenance');
+        if (response.data) {
+          setMaintenanceMode(response.data.maintenanceMode || false);
+        }
+      } catch (error) {
+        console.error('Failed to fetch maintenance mode status:', error);
+      }
+    };
+
+    fetchMaintenanceStatus();
+  }, []);
 
   // DnD sensors setup
   const sensors = useSensors(
@@ -499,134 +517,159 @@ const TaskBoard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* Maintenance Mode Banner */}
+      {maintenanceMode && <MaintenanceModeBanner />}
+      
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
-            <div>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="p-1" asChild>
-                  <Link to="/dashboard">
-                    <ArrowLeft className="h-4 w-4" />
-                  </Link>
-                </Button>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/dashboard" className="flex items-center gap-1">
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Link>
+              </Button>
+              <div>
                 <h1 className="text-xl font-bold text-slate-800">{project.name}</h1>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="p-1 text-slate-500 hover:text-slate-800"
-                  onClick={() => setIsEditProjectOpen(true)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
+                <p className="text-sm text-slate-500">{project.description}</p>
               </div>
-              {project.description && (
-                <p className="text-sm text-slate-600 mt-1">{project.description}</p>
-              )}
             </div>
             
-            <div className="flex gap-2 items-center">
-              {/* Socket status indicator */}
-              <SocketStatus projectId={projectId} />
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <div className="relative flex-1 md:max-w-xs">
+                <Input
+                  placeholder="Search tasks..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8"
+                />
+                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+              </div>
               
-              {/* Filter dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-1">
-                    <Filter className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Filter</span>
+                  <Button variant="outline" size="sm">
+                    <Filter className="h-4 w-4 mr-1" />
+                    Filter
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => setFilterPriority(null)}>
-                    All priorities
+                    All Priorities
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setFilterPriority("high")}>
-                    High priority
+                    High Priority
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setFilterPriority("medium")}>
-                    Medium priority
+                    Medium Priority
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setFilterPriority("low")}>
-                    Low priority
+                    Low Priority
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               
-              {/* Sort dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-1">
-                    <SortAsc className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Sort</span>
+                  <Button variant="outline" size="sm">
+                    <SortAsc className="h-4 w-4 mr-1" />
+                    Sort
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => setSortOrder("newest")}>
-                    Newest first
+                    Newest First
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setSortOrder("oldest")}>
-                    Oldest first
+                    Oldest First
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               
-              <Button size="sm" onClick={() => setIsCreateTaskOpen(true)}>
-                <Plus className="h-4 w-4 mr-1" /> Add Task
+              <Button onClick={() => setIsCreateTaskOpen(true)} size="sm">
+                <Plus className="h-4 w-4 mr-1" />
+                New Task
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setIsEditProjectOpen(true)}
+              >
+                <Edit className="h-4 w-4" />
               </Button>
             </div>
           </div>
           
-          {/* Search Bar */}
-          <div className="mt-4 flex flex-col sm:flex-row gap-2">
+          {/* AI Search */}
+          <div className="mt-4 flex gap-2">
             <div className="relative flex-1">
               <Input
-                placeholder="Search tasks..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setSearchFilter(null);
-                  setAiSearchQuery("");
-                }}
-                className="pr-8"
+                placeholder="Ask AI to find tasks (e.g., 'find urgent tasks about the login page')"
+                value={aiSearchQuery}
+                onChange={(e) => setAiSearchQuery(e.target.value)}
+                className="pl-8"
+                disabled={aiSearchLoading}
               />
-              {searchQuery && (
-                <button 
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  onClick={clearSearch}
-                >
-                  ×
-                </button>
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+            </div>
+            <Button 
+              onClick={handleAISearch} 
+              disabled={!aiSearchQuery.trim() || aiSearchLoading}
+              size="sm"
+            >
+              {aiSearchLoading ? "Searching..." : "Ask AI"}
+            </Button>
+            {searchFilter && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={clearSearch}
+              >
+                Clear Search
+              </Button>
+            )}
+          </div>
+          
+          {/* Filter indicators */}
+          {(filterPriority || searchFilter) && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {filterPriority && (
+                <Badge variant="outline" className="bg-white">
+                  Priority: {filterPriority}
+                  <button 
+                    className="ml-2 text-xs" 
+                    onClick={() => setFilterPriority(null)}
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+              {searchFilter && (
+                <Badge variant="outline" className="bg-white">
+                  AI Search: {aiSearchQuery}
+                  <button 
+                    className="ml-2 text-xs" 
+                    onClick={clearSearch}
+                  >
+                    ×
+                  </button>
+                </Badge>
               )}
             </div>
-            
-            {/* AI Search */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="AI search (e.g., 'high priority tasks due this week')"
-                value={aiSearchQuery}
-                onChange={(e) => {
-                  setAiSearchQuery(e.target.value);
-                  setSearchQuery("");
-                }}
-                className="min-w-[240px]"
-              />
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleAISearch}
-                disabled={aiSearchLoading || !aiSearchQuery.trim()}
-              >
-                <Search className="h-4 w-4 mr-1" />
-                Search
-              </Button>
-            </div>
+          )}
+          
+          {/* Socket connection status */}
+          <div className="mt-2">
+            <SocketStatus connected={socketConnected} />
           </div>
         </div>
       </header>
 
-      {/* Task Board */}
+      {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
         {/* Active filters display */}
         {(filterPriority || searchQuery || searchFilter) && (

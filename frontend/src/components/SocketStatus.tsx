@@ -6,13 +6,17 @@ import { RefreshCw } from 'lucide-react';
 
 interface SocketStatusProps {
   projectId?: string;
+  connected?: boolean;
 }
 
-const SocketStatus = ({ projectId }: SocketStatusProps) => {
-  const [connected, setConnected] = useState(false);
+const SocketStatus = ({ projectId, connected: externalConnected }: SocketStatusProps) => {
+  const [internalConnected, setInternalConnected] = useState(false);
   const [lastEvent, setLastEvent] = useState<string | null>(null);
   const [lastEventTime, setLastEventTime] = useState<Date | null>(null);
   const [connectionAttempts, setConnectionAttempts] = useState(0);
+
+  // Use the external connected state if provided, otherwise use internal state
+  const isConnected = externalConnected !== undefined ? externalConnected : internalConnected;
 
   const reconnect = () => {
     socketService.disconnect();
@@ -24,14 +28,19 @@ const SocketStatus = ({ projectId }: SocketStatusProps) => {
   };
 
   useEffect(() => {
+    // Only set up listeners if external connected state is not provided
+    if (externalConnected !== undefined) {
+      return;
+    }
+
     // Setup socket connection status listener using the new global event system
     const unsubscribeConnection = socketService.on('connection-status', (status) => {
-      setConnected(status);
+      setInternalConnected(status);
       console.log('SocketStatus: Connection status changed to', status);
     });
 
     // Set initial connection status
-    setConnected(socketService.isConnected());
+    setInternalConnected(socketService.isConnected());
     
     // Setup event listeners
     const unsubscribeTaskCreated = socketService.on('task-created', () => {
@@ -62,14 +71,14 @@ const SocketStatus = ({ projectId }: SocketStatusProps) => {
       unsubscribeTaskUpdated();
       unsubscribeTaskDeleted();
     };
-  }, [projectId, connectionAttempts]);
+  }, [projectId, connectionAttempts, externalConnected]);
 
   return (
     <div className="flex items-center gap-2 text-xs">
-      <Badge variant={connected ? "default" : "destructive"} className="px-2 py-0 h-5">
-        {connected ? 'Connected' : 'Disconnected'}
+      <Badge variant={isConnected ? "default" : "destructive"} className="px-2 py-0 h-5">
+        {isConnected ? 'Connected' : 'Disconnected'}
       </Badge>
-      {!connected && (
+      {!isConnected && (
         <Button 
           variant="ghost" 
           size="sm" 

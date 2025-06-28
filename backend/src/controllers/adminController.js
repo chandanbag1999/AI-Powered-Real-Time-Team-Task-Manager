@@ -6,9 +6,10 @@ const { sendEmail } = require("../utils/sendEmail");
 const mongoose = require("mongoose");
 const crypto = require("crypto");
 const SystemSettings = require("../models/SystemSettingsModel");
+const SystemLog = require("../models/SystemLogModel");
 
 // Get admin dashboard statistics
-exports.getDashboardStats = async (req, res) => {
+exports.getDashboardStats = async (req, res) => { 
   try {
     // Verify the user is an admin
     if (req.user.role !== "admin") {
@@ -844,5 +845,125 @@ exports.performSystemAction = async (req, res) => {
         message: `Failed to perform ${req.params.action}`,
         error: error.message,
       });
+  }
+};
+
+// Get system logs with pagination and filtering
+exports.getSystemLogs = async (req, res) => {
+  try {
+    // Verify the user is an admin
+    if (req.user.role !== 'admin') {
+      logSecurityEvent('UNAUTHORIZED_ADMIN_ACCESS', { 
+        userId: req.user._id,
+        endpoint: 'getSystemLogs' 
+      }, req);
+      return res.status(403).json({ message: "Not authorized as admin" });
+    }
+
+    // Get query parameters for filtering and pagination
+    const { 
+      page = 1, 
+      limit = 50, 
+      level, 
+      source, 
+      startDate, 
+      endDate 
+    } = req.query;
+
+    // Get logs with pagination and filtering
+    const result = await SystemLog.getLogs({
+      page,
+      limit,
+      level,
+      source,
+      startDate,
+      endDate
+    });
+
+    // Log the access
+    logSecurityEvent('SYSTEM_LOGS_ACCESSED', { 
+      userId: req.user._id,
+      filters: req.query
+    }, req);
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Get system logs error:', error);
+    res.status(500).json({ message: "Failed to get system logs", error: error.message });
+  }
+};
+
+// Add some initial logs for demonstration
+exports.seedSystemLogs = async (req, res) => {
+  try {
+    // Verify the user is an admin
+    if (req.user.role !== 'admin') {
+      logSecurityEvent('UNAUTHORIZED_ADMIN_ACCESS', { 
+        userId: req.user._id,
+        endpoint: 'seedSystemLogs' 
+      }, req);
+      return res.status(403).json({ message: "Not authorized as admin" });
+    }
+
+    // Check if logs already exist
+    const existingLogs = await SystemLog.countDocuments();
+    if (existingLogs > 0) {
+      return res.status(200).json({ message: "Logs already exist", count: existingLogs });
+    }
+
+    // Sample log data
+    const sampleLogs = [
+      {
+        level: 'info',
+        message: 'Server started successfully',
+        timestamp: new Date(),
+        source: 'system'
+      },
+      {
+        level: 'info',
+        message: 'Database connected',
+        timestamp: new Date(Date.now() - 60000),
+        source: 'database'
+      },
+      {
+        level: 'warn',
+        message: 'High memory usage detected',
+        timestamp: new Date(Date.now() - 120000),
+        source: 'system',
+        meta: { memoryUsage: '85%' }
+      },
+      {
+        level: 'error',
+        message: 'Failed to process task #123',
+        timestamp: new Date(Date.now() - 180000),
+        source: 'tasks',
+        meta: { taskId: '123', reason: 'Timeout' }
+      },
+      {
+        level: 'info',
+        message: 'User login successful',
+        timestamp: new Date(Date.now() - 240000),
+        source: 'auth',
+        meta: { userId: req.user._id }
+      }
+    ];
+
+    // Insert sample logs
+    await SystemLog.insertMany(sampleLogs);
+
+    res.status(200).json({ message: "Sample logs created successfully", count: sampleLogs.length });
+  } catch (error) {
+    console.error('Seed system logs error:', error);
+    res.status(500).json({ message: "Failed to seed system logs", error: error.message });
+  }
+};
+
+exports.getMaintenanceStatus = async (req, res) => {
+  try {
+    const settings = await SystemSettings.getSettings();
+    res.status(200).json({ maintenanceMode: settings.maintenanceMode || false });
+  } catch (error) {
+    console.error("Error getting maintenance status:", error);
+    res.status(500).json({ message: "Error getting maintenance status" });
   }
 };

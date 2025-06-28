@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '@/hooks/useStore';
 import { logout } from '@/features/auth/authSlice';
@@ -15,6 +15,8 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import MaintenanceModeBanner from '@/components/MaintenanceModeBanner';
+import apiClient from '@/utils/apiClient';
 
 const AdminLayout = () => {
   const { user } = useAppSelector(state => state.auth);
@@ -22,6 +24,23 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+
+  // Fetch maintenance mode status
+  useEffect(() => {
+    const fetchMaintenanceStatus = async () => {
+      try {
+        const response = await apiClient.get('/system/maintenance');
+        if (response.data) {
+          setMaintenanceMode(response.data.maintenanceMode || false);
+        }
+      } catch (error) {
+        console.error('Failed to fetch maintenance mode status:', error);
+      }
+    };
+
+    fetchMaintenanceStatus();
+  }, []);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -122,6 +141,9 @@ const AdminLayout = () => {
 
       {/* Main content */}
       <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Maintenance Mode Banner */}
+        {maintenanceMode && <MaintenanceModeBanner isAdmin={true} />}
+
         {/* Header */}
         <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 lg:px-6">
           <div className="flex items-center">

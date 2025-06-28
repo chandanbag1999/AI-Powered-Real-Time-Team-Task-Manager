@@ -4,6 +4,8 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const http = require("http");
 const { Server } = require("socket.io");
+const { protect } = require("./middlewares/authMiddleware");
+const { maintenanceCheck } = require("./middlewares/maintenanceMiddleware");
 
 
 dotenv.config();
@@ -39,18 +41,24 @@ const projectRoutes = require("./routes/projectRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-
+const systemRoutes = require("./routes/systemRoutes");
 
 
 app.get("/", (req, res) => {
   res.send("API is Running....");
 });
-app.use("/api/auth", authRoutes);
-app.use("/api/projects", projectRoutes);
-app.use("/api/tasks", taskRoutes);
-app.use('/api/ai', aiRoutes);
-app.use('/api/admin', adminRoutes);
 
+// Public system routes (no authentication required)
+app.use("/api/system", systemRoutes);
+
+app.use("/api/auth", authRoutes);
+
+// Apply maintenance check middleware to protected routes
+// Note: This middleware should be applied after the protect middleware
+app.use("/api/projects", protect, maintenanceCheck, projectRoutes);
+app.use("/api/tasks", protect, maintenanceCheck, taskRoutes);
+app.use('/api/ai', protect, maintenanceCheck, aiRoutes);
+app.use('/api/admin', adminRoutes); // Admin routes are exempt from maintenance check
 
 
 // Socket.io Connection
