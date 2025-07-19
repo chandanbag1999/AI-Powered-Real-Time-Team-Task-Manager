@@ -149,14 +149,6 @@ class SocketService {
     this.on('task-deleted', callback);
   }
 
-  // Helper to track listeners for cleanup
-  private addListener(event: string, callback: Function): void {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, []);
-    }
-    this.listeners.get(event)?.push(callback);
-  }
-
   // Remove all listeners for cleanup
   removeAllListeners(): void {
     if (!this.socket) return;

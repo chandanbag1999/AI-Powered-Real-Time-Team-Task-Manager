@@ -27,7 +27,7 @@ const initialState: AuthState = {
 // Load user data from token on app initialization
 export const loadUserFromToken = createAsyncThunk(
   "auth/loadUserFromToken",
-  async (_, thunkAPI) => {
+  async () => {
     try {
       // Check if we have tokens stored
       const accessToken = getAccessToken();

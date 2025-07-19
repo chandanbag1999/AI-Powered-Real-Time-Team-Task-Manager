@@ -14,7 +14,6 @@ import {
   UserCheck, 
   UserX,
   X,
-  Trash2,
   UserPlus,
   AlertCircle,
   Mail
@@ -156,7 +155,7 @@ const UsersPage = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await apiClient.put(`/admin/users/${selectedUser._id}`, {
+      await apiClient.put(`/admin/users/${selectedUser._id}`, {
         name: editName,
         role: editRole
       });

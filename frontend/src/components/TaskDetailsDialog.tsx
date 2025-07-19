@@ -22,16 +22,11 @@ import { toast } from "sonner";
 import {
   Sparkles,
   Calendar,
-  Upload,
   X,
   Plus,
   Pencil,
-  Check,
   Trash2,
-  Paperclip,
-  ExternalLink,
   FileText,
-  Image as ImageIcon,
   Download,
   Eye,
   File,
@@ -418,41 +413,7 @@ const TaskDetailsDialog = ({
     }
   };
 
-  const getFileType = (fileName: string) => {
-    if (!fileName) return 'application/octet-stream';
-    
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    
-    // Common MIME types
-    const mimeTypes: Record<string, string> = {
-      'pdf': 'application/pdf',
-      'jpg': 'image/jpeg',
-      'jpeg': 'image/jpeg',
-      'png': 'image/png',
-      'gif': 'image/gif',
-      'webp': 'image/webp',
-      'svg': 'image/svg+xml',
-      'doc': 'application/msword',
-      'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'xls': 'application/vnd.ms-excel',
-      'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'ppt': 'application/vnd.ms-powerpoint',
-      'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'mp3': 'audio/mpeg',
-      'wav': 'audio/wav',
-      'mp4': 'video/mp4',
-      'avi': 'video/x-msvideo',
-      'mov': 'video/quicktime',
-      'zip': 'application/zip',
-      'txt': 'text/plain',
-      'html': 'text/html',
-      'css': 'text/css',
-      'js': 'text/javascript',
-      'json': 'application/json'
-    };
-    
-    return mimeTypes[extension || ''] || 'application/octet-stream';
-  };
+
 
   const handleViewFile = async () => {
     if (!task?.fileUrl) return;

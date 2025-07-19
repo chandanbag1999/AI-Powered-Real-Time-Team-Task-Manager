@@ -27,9 +27,6 @@ const TaskStatusSelect = ({ task, onStatusChange, className }: TaskStatusSelectP
       setIsUpdating(true);
       console.log(`TaskStatusSelect: Changing status from ${currentStatus} to ${status}`);
       
-      // Store original status for rollback if needed
-      const originalStatus = currentStatus;
-      
       // Optimistically update local state
       setCurrentStatus(status as "todo" | "in-progress" | "completed");
       
