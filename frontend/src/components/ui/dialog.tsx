@@ -12,9 +12,33 @@ type DialogContextType = {
 
 const DialogContext = React.createContext<DialogContextType | undefined>(undefined);
 
-// Main Dialog component
-export function Dialog({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
+// Modified Dialog component that accepts open state if provided
+export function Dialog({ 
+  children,
+  open: controlledOpen,
+  onOpenChange
+}: { 
+  children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  // Use internal state if not controlled
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // Determine if we're using controlled or uncontrolled state
+  const isControlled = controlledOpen !== undefined && onOpenChange !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  
+  // Function to update the open state
+  const setOpen = (newOpen: boolean) => {
+    if (isControlled) {
+      // For controlled components, call the provided handler
+      onOpenChange?.(newOpen);
+    } else {
+      // For uncontrolled, use the internal state
+      setInternalOpen(newOpen);
+    }
+  };
   
   return (
     <DialogContext.Provider value={{ open, setOpen }}>

@@ -57,6 +57,11 @@ const TaskCard = ({ task, onStatusChange, onDelete }: TaskCardProps) => {
     }
   }, [currentTask.fileUrl, currentTask.fileName]);
 
+  useEffect(() => {
+    // Update state when the parent component passes a new task
+    setCurrentTask(task);
+  }, [task]);
+
   // Listen for socket updates to this specific task
   useEffect(() => {
     // Subscribe to task updates from socket
@@ -132,11 +137,21 @@ const TaskCard = ({ task, onStatusChange, onDelete }: TaskCardProps) => {
     
     // If the status changed, notify parent component
     if (updatedTask.status !== task.status && onStatusChange) {
-      console.log(`TaskCard: Status changed from ${task.status} to ${updatedTask.status}`);
+      // console.log(`TaskCard: Status changed from ${task.status} to ${updatedTask.status}`);
       onStatusChange(updatedTask);
     }
     
     toast.success("Task updated");
+  };
+
+  const handleOpenDetails = () => {
+    // console.log("Opening task details for:", currentTask._id, currentTask.title);
+    setIsDetailsOpen(true);
+  };
+
+  const handleCloseDetails = (open: boolean) => {
+    // console.log("Setting details dialog open state to:", open);
+    setIsDetailsOpen(open);
   };
 
   return (
@@ -148,7 +163,10 @@ const TaskCard = ({ task, onStatusChange, onDelete }: TaskCardProps) => {
         {...attributes} 
         {...listeners}
       >
-        <CardContent className="p-4" onClick={() => setIsDetailsOpen(true)}>
+        <CardContent 
+          className="p-4" 
+          onClick={handleOpenDetails}
+        >
           <div className="flex justify-between items-start mb-2">
             <h4 className="font-medium text-slate-800">{currentTask.title}</h4>
             <DropdownMenu>
@@ -265,7 +283,7 @@ const TaskCard = ({ task, onStatusChange, onDelete }: TaskCardProps) => {
 
       <TaskDetailsDialog
         open={isDetailsOpen}
-        onOpenChange={setIsDetailsOpen}
+        onOpenChange={handleCloseDetails}
         task={currentTask}
         onTaskUpdated={(updatedTask) => {
           if (updatedTask) {
