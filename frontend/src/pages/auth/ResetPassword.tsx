@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import apiClient from "@/utils/apiClient";
@@ -64,9 +64,8 @@ export default function ResetPassword() {
               <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
                 New Password
               </label>
-              <Input 
+              <PasswordInput 
                 id="password"
-                type="password" 
                 placeholder="••••••••" 
                 value={password} 
                 onChange={e => setPassword(e.target.value)} 
@@ -79,9 +78,8 @@ export default function ResetPassword() {
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">
                 Confirm New Password
               </label>
-              <Input 
+              <PasswordInput 
                 id="confirmPassword"
-                type="password" 
                 placeholder="••••••••" 
                 value={confirmPassword} 
                 onChange={e => setConfirmPassword(e.target.value)} 

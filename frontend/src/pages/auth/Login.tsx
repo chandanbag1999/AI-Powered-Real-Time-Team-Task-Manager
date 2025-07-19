@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Link } from "react-router-dom";
 import { loginUser } from "@/features/auth/authSlice";
 import { toast } from "sonner";
@@ -81,9 +82,8 @@ export default function Login() {
                 Forgot password?
               </Link>
             </div>
-            <Input 
+            <PasswordInput 
               id="password"
-              type="password" 
               placeholder="••••••••" 
               value={password} 
               onChange={e => setPassword(e.target.value)} 

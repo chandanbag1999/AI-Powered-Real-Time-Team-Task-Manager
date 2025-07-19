@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
@@ -74,9 +75,8 @@ export default function Register() {
           
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-            <Input 
+            <PasswordInput 
               id="password"
-              type="password" 
               placeholder="••••••••" 
               value={password} 
               onChange={e => setPassword(e.target.value)} 

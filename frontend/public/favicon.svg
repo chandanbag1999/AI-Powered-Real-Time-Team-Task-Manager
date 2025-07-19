@@ -1,0 +1,31 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="checkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main background -->
+  <rect width="32" height="32" rx="6" fill="url(#bgGradient)"/>
+  
+  <!-- Task list lines -->
+  <rect x="8" y="8" width="12" height="2" rx="1" fill="white" opacity="0.9"/>
+  <rect x="8" y="13" width="16" height="2" rx="1" fill="white" opacity="0.7"/>
+  <rect x="8" y="18" width="10" height="2" rx="1" fill="white" opacity="0.7"/>
+  
+  <!-- Checkmark circle -->
+  <circle cx="24" cy="24" r="6" fill="url(#checkGradient)"/>
+  
+  <!-- Checkmark -->
+  <path d="M21.5 24L23 25.5L26.5 22" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- AI spark/star accent -->
+  <circle cx="6" cy="6" r="1.5" fill="#FBBF24" opacity="0.9"/>
+  <path d="M6 4V8M4 6H8" stroke="#FBBF24" stroke-width="0.8" stroke-linecap="round"/>
+</svg>

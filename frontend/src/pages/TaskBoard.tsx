@@ -104,7 +104,11 @@ const TaskBoard = () => {
   const fetchTasks = useCallback(async () => {
     try {
       const tasksData = await taskService.getTasks(projectId);
-      setTasks(tasksData);
+      // Ensure no duplicate tasks by filtering unique IDs
+      const uniqueTasks = tasksData.filter((task, index, self) => 
+        index === self.findIndex(t => t._id === task._id)
+      );
+      setTasks(uniqueTasks);
     } catch (err: unknown) {
       console.error("Error fetching tasks:", err);
       toast.error("Failed to load tasks");
@@ -371,8 +375,14 @@ const TaskBoard = () => {
     try {
       const newTask = await taskService.createTask(projectId, taskData, file);
       
-      // Add the new task to the state
-      setTasks(prev => [...prev, newTask]);
+      // Add the new task to the state with duplicate prevention
+      setTasks(prev => {
+        // Check if task already exists to avoid duplicates
+        if (prev.some(t => t._id === newTask._id)) {
+          return prev;
+        }
+        return [...prev, newTask];
+      });
       setIsCreateTaskOpen(false);
       toast.success("Task created successfully");
       
@@ -442,9 +452,9 @@ const TaskBoard = () => {
           </div>
         ) : (
           <SortableContext items={columnTasks.map(task => task._id)} strategy={verticalListSortingStrategy}>
-            {columnTasks.map(task => (
+            {columnTasks.map((task, index) => (
               <TaskCard 
-                key={task._id}
+                key={`${task._id}-${index}`}
                 task={task}
                 onDelete={() => handleDeleteTask(task._id)}
                 onStatusChange={(updatedTask) => {
