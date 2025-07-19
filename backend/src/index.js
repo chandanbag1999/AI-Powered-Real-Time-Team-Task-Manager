@@ -17,7 +17,7 @@ const server = http.createServer(app);
 // Configure Socket.IO with proper CORS settings
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'https://your-app-name.vercel.app'], // Add your Vercel domain here
+    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'https://ai-powered-real-time-team-task-mana.vercel.app'], // Add your Vercel domain here
     methods: ["GET", "POST"],
     credentials: true, // Allow credentials
   },
