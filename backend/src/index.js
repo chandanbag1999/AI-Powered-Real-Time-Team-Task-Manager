@@ -31,7 +31,7 @@ app.set('io', io);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173'], // Match Socket.IO CORS settings
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'https://ai-powered-real-time-team-task-mana.vercel.app'], // Match Socket.IO CORS settings
   credentials: true, // Allow credentials
 }));
 
